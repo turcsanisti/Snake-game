@@ -7,6 +7,7 @@ import java.awt.event.KeyEvent;
 
 import java.util.Random;
 
+import javax.swing.JOptionPane;
 import javax.swing.Timer;
 
 import nhf.gui.GamePanel;
@@ -19,6 +20,7 @@ public class Engine {
     private Timer timer;
     private int dx;
     private int dy;
+    private boolean directionChangedThisTick;
     private Random random;
 
     /**
@@ -41,15 +43,52 @@ public class Engine {
 
         dx = -1;
         dy = 0;
+        directionChangedThisTick = false;
 
-        timer = new Timer(500, e -> loop());
+        timer = new Timer(350, e -> loop());
         random = new Random();
 
         generateApple();
     }
 
-    public static void gameOver() {
-        System.out.println("Game over!");
+    public void gameOver() {
+        timer.stop();
+        
+        Object[] options = {"New Game", "Exit"};
+        int o = JOptionPane.showOptionDialog(igp, "vesztettem", "Game Over", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+
+        switch (o) {
+            case 0:
+                resetGame();
+                break;
+            case 1:
+                System.exit(0);
+                break;
+            default:
+                System.exit(0);
+                break;
+        }
+    }
+
+    public void resetGame() {
+        snake = new Snake();
+
+        igp.setSnake(snake);
+
+        dx = -1;
+        dy = 0;
+        directionChangedThisTick = false;
+
+        timer = new Timer(350, e -> loop());
+        random = new Random();
+
+        generateApple();
+
+        igp.repaint();
+
+        timer.start();
+
+        igp.requestFocusInWindow();
     }
 
     public  boolean headInBody(Point head, Snake snake) {
@@ -67,6 +106,8 @@ public class Engine {
 
     public void loop() {
         
+        directionChangedThisTick = false;
+        
         Point head = snake.getHead();
         Point nextHead = new Point(head.x + dx, head.y + dy);
         boolean willEatApple = false;
@@ -79,9 +120,8 @@ public class Engine {
         
         snake.move(dx, dy, willEatApple);
             
-        if(head.x < 0 || head.y < 0 || head.x > 10 || head.y > 10 || headInBody(head, snake)) {
+        if(nextHead.x < 0 || nextHead.y < 0 || nextHead.x > 10 || nextHead.y > 10 || headInBody(head, snake)) {
             gameOver();
-            timer.stop();
             return;
         }
             
@@ -110,21 +150,30 @@ public class Engine {
     }
 
     public void changeDirection(int keyCode) {
+        if (directionChangedThisTick) return;
+
+        boolean changed = false;
         if (keyCode == KeyEvent.VK_LEFT && dx != 1) {
             dy = 0;
             dx = -1;
+            changed = true;
         }
         else if (keyCode == KeyEvent.VK_RIGHT && dx != -1) {
             dy = 0;
             dx = 1;
+            changed = true;
         }
         else if (keyCode == KeyEvent.VK_UP && dy != 1) {
             dy = -1;
             dx = 0;
+            changed = true;
         }
-        if (keyCode == KeyEvent.VK_DOWN && dy != -1) {
+        else if (keyCode == KeyEvent.VK_DOWN && dy != -1) {
             dy = 1;
             dx = 0;
+            changed = true;
         }
+
+        if (changed) directionChangedThisTick = true;
     }
 }
