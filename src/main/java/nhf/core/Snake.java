@@ -11,7 +11,7 @@ public class Snake {
 
     public Snake() {
         body = new LinkedList<>();
-        body.add(new Point(5, 5));
+        body.add(new Point(Map.SIZE / 2, Map.SIZE / 2));
         size = 1;
     }
     // mozgatás: a kígyónak új feje lesz, a farka törlődik
@@ -28,8 +28,14 @@ public class Snake {
     public Point getHead() {
         return body.getFirst();
     }
-
     public List<Point> getBody() {
         return body;
+    }
+    public int getSize() {
+        return size;
+    }
+
+    public void setSize(int i) {
+        size = i;
     }
 }

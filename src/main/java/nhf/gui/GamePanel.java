@@ -1,74 +1,66 @@
 package nhf.gui;
 
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.border.LineBorder;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 import nhf.core.Engine;
 import nhf.core.Map;
 import nhf.core.Snake;
+import nhf.core.ObjectType;
 
-public class GamePanel extends JFrame{
-    
+public class GamePanel extends JFrame {
+    private Image bg;
+    private Image scoresBg;
+
+    private Image normalPlay;
+    private Image normalScores;
+    private Image normalExit;
+    private Image hoveredPlay;
+    /*private Image hoveredScores;
+    private Image hoveredExit;*/
+
     public GamePanel() {
         super("Snake Game");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(800, 800);
         
-        Image bg = new ImageIcon(getClass().getResource("/background.png")).getImage();
+        bg = new ImageIcon(getClass().getResource("/background.png")).getImage();
+        scoresBg = new ImageIcon(getClass().getResource("/scores_background.png")).getImage();
 
+        normalPlay = new ImageIcon(getClass().getResource("/playbutton_normal.png")).getImage();
+        normalScores = new ImageIcon(getClass().getResource("/scoresbutton_normal.png")).getImage();
+        normalExit = new ImageIcon(getClass().getResource("/exitbutton_normal.png")).getImage();
+        hoveredPlay = new ImageIcon(getClass().getResource("/playbutton_hovered.png")).getImage();
+
+        menu();
+    }
+
+    public void menu() {
         MenuPanel mp = new MenuPanel(bg);
         mp.setLayout(new BoxLayout(mp, BoxLayout.Y_AXIS));
-        
-        Image normalPlay = new ImageIcon(getClass().getResource("/playbutton_normal.png")).getImage();
-        Image normalScores = new ImageIcon(getClass().getResource("/scoresbutton_normal.png")).getImage();
-        Image normalExit = new ImageIcon(getClass().getResource("/exitbutton_normal.png")).getImage();
-        
-        Image hoveredPlay = new ImageIcon(getClass().getResource("/playbutton_hovered.png")).getImage();
-        /*ImageIcon pressed = new ImageIcon(getClass().getResource("/button_pressed.png")); */
+
         JButton playButton = new JButton();
-        /*playButton.setPressedIcon(pressed);*/
         JButton scoresButton = new JButton();
         JButton exitButton = new JButton();
-        
-        playButton.setBorderPainted(false);
-        playButton.setContentAreaFilled(false);
-        playButton.setFocusPainted(false);
-        playButton.setOpaque(false);
-        
-        scoresButton.setBorderPainted(false);
-        scoresButton.setContentAreaFilled(false);
-        scoresButton.setFocusPainted(false);
-        scoresButton.setOpaque(false);
-        
-        exitButton.setBorderPainted(false);
-        exitButton.setContentAreaFilled(false);
-        exitButton.setFocusPainted(false);
-        exitButton.setOpaque(false);
-        
-        playButton.setAlignmentX(CENTER_ALIGNMENT);
-        scoresButton.setAlignmentX(CENTER_ALIGNMENT);
-        exitButton.setAlignmentX(CENTER_ALIGNMENT);
-        
+
+        setStyle(playButton);
+        setStyle(scoresButton);
+        setStyle(exitButton);
+
         mp.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
@@ -92,15 +84,22 @@ public class GamePanel extends JFrame{
             }
             
         });
-        
+
         playButton.addActionListener(e -> {
             InGamePanel igp = new InGamePanel();
             Engine eng = new Engine(igp);
 
+            igp.setEngine(eng);
+
             igp.addKeyListener(new KeyAdapter() {
                 @Override
                 public void keyPressed(KeyEvent e) {
-                    eng.changeDirection(e.getKeyCode());
+                    if(e.getKeyCode() == KeyEvent.VK_SPACE) {
+                        eng.activatePowerUp();
+                    }
+                    else {
+                        eng.changeDirection(e.getKeyCode());
+                    }
                 }
             });
 
@@ -113,16 +112,33 @@ public class GamePanel extends JFrame{
 
             eng.start();
         });
-            
-        
-        
+
+        scoresButton.addActionListener(e -> {
+            ScorePanel sp = new ScorePanel(scoresBg, this);
+
+            setContentPane(sp);
+            revalidate();
+            repaint();
+        });
+
         mp.add(Box.createVerticalGlue());
         mp.add(playButton);
         mp.add(scoresButton);
         mp.add(exitButton);
         mp.add(Box.createVerticalGlue());
-        
+
         setContentPane(mp);
+        revalidate();
+        repaint();
+    }
+
+    private void setStyle(JButton button) {
+        button.setBorderPainted(false);
+        button.setContentAreaFilled(false);
+        button.setFocusPainted(false);
+        button.setOpaque(false);
+        button.setFocusable(false);
+        button.setAlignmentX(CENTER_ALIGNMENT);
         
     }
     
@@ -143,6 +159,14 @@ public class GamePanel extends JFrame{
     public class InGamePanel extends JPanel {
         private transient Map map;
         private transient Snake snake;
+        private transient Engine engine;
+
+        private ObjectType storedItem;
+
+        private int timeRemaining;
+        private int score = 0;
+
+        private String elapsedTime = "00:00";
 
         public void setSnake(Snake snake) {
             this.snake = snake;
@@ -150,23 +174,36 @@ public class GamePanel extends JFrame{
         public void setMap(Map map) {
             this.map = map;
         }
+        public void setEngine(Engine engine) {
+            this.engine = engine;
+        }
+
+        public void updateGameStatus(ObjectType item, int time, int score, String elapsedTime) {
+            storedItem = item;
+            timeRemaining = time;
+            this.score = score;
+            this.elapsedTime = elapsedTime;
+        }
 
         @Override
         public void paintComponent(Graphics g) {
             super.paintComponent(g);
+            
+            if (map == null || snake == null)
+                return;
 
             int[][] grid = map.getGrid();
             
             int panelWidth = getWidth();
             int panelHeight = getHeight();
             
-            int cellSize = Math.min(panelHeight, panelWidth) / 11;
+            int cellSize = Math.min(panelHeight, panelWidth) / Map.SIZE;
 
-            int offsetX = (panelWidth - (11 * cellSize)) / 2;
-            int offsetY = (panelHeight - (11 * cellSize)) / 2;
+            int offsetX = (panelWidth - (Map.SIZE * cellSize)) / 2;
+            int offsetY = (panelHeight - (Map.SIZE * cellSize)) / 2;
 
-            for(int row = 0; row < 11; row++) {
-                for(int col = 0; col < 11; col++) {
+            for(int row = 0; row < Map.SIZE; row++) {
+                for(int col = 0; col < Map.SIZE; col++) {
                     int x = offsetX + col * cellSize;
                     int y = offsetY + row * cellSize;
 
@@ -185,11 +222,45 @@ public class GamePanel extends JFrame{
 
             Point apple = map.getApple();
             if (apple != null) {
-                int appleX = offsetX + (apple.x * cellSize);
-                int appleY = offsetY + (apple.y * cellSize);
+                boolean isMega = false;
+
+                if (engine != null) {
+                    isMega = engine.currentAppleMega();
+                }
+
+                int size = isMega ? cellSize * 2 : cellSize;
 
                 g.setColor(Color.RED);
-                g.fillRect(appleX, appleY, cellSize, cellSize);
+
+                int applePixelX = offsetX + (apple.x * cellSize);
+                int applePixelY = offsetY + (apple.y * cellSize);
+
+                g.fillRect(applePixelX, applePixelY, size, size);
+
+                /*g.setColor(Color.WHITE);
+                g.drawRect(applePixelX, applePixelY, size, size);*/
+            }
+
+            Point pLoc = map.getPowerUpLocation();
+            ObjectType pType = map.getPowerUpType();
+
+            if (pLoc != null && pType != null) {
+                Color c = Color.WHITE;
+
+                switch (pType) {
+                    case SPEED:
+                        c = Color.MAGENTA;
+                        break;
+                    case INVERTED:
+                        c = Color.WHITE;
+                        break;
+                    case MEGAAPPLE:
+                        c = Color.DARK_GRAY;
+                        break;
+                    default:
+                        break;
+                }
+                paintObjects(pLoc, offsetX, offsetY, cellSize, g, c);
             }
 
             for (Point p : snake.getBody()) {
@@ -207,6 +278,85 @@ public class GamePanel extends JFrame{
 
             g.setColor(new Color(0, 120, 0));
             g.fillRect(headX, headY, cellSize, cellSize);
+
+            drawInventory(g);
+            drawScore(g);
+            drawTimer(g);
+        }
+
+        public void paintObjects(Point object, int offsetX, int offsetY, int cellSize, Graphics g, Color color) {
+                if (object != null) {
+                    int speedPowerUpX = offsetX + (object.x * cellSize);
+                    int speedPowerUpY = offsetY + (object.y * cellSize);
+    
+                    g.setColor(color);
+                    g.fillRect(speedPowerUpX, speedPowerUpY, cellSize, cellSize);
+                }
+        }
+
+        private void drawInventory(Graphics g) {
+            if (storedItem != null) {
+                g.setColor(Color.BLACK);
+
+                String txt;
+                Color itemColor = Color.BLACK;
+                switch (storedItem) {
+                    case SPEED:
+                        itemColor = Color.MAGENTA;
+                        txt = "SPEED UP: " + timeRemaining + "s (USE SPACE TO ACTIVATE)";
+                        g.drawString(txt, 20, 30);
+                        break;
+                    case INVERTED:
+                        itemColor = Color.WHITE;
+                        txt = "INVERT CONTROLS: " + timeRemaining + "s (USE SPACE TO ACTIVATE)";
+                        g.drawString(txt, 20, 30);
+                        break;
+                    case MEGAAPPLE:
+                        itemColor = Color.DARK_GRAY;
+                        txt = "MEGA APPLES!: " + timeRemaining + "s (USE SPACE TO ACTIVATE)";
+                        g.drawString(txt, 20, 30);
+                        break;
+                
+                    default:
+                        break;
+                }
+
+                g.setColor(itemColor);
+                g.fillRect(20, 40, 30, 30);
+                g.setColor(Color.BLACK);
+                g.drawRect(20, 40, 30, 30);
+            }
+        }
+
+        private void drawScore(Graphics g) {
+            g.setColor(Color.BLACK);
+            g.setFont(new Font("Arial", Font.BOLD, 20));
+
+            String txt = "Score: " + score;
+
+            int txtWidth = g.getFontMetrics().stringWidth(txt);
+            int x = getWidth() - txtWidth - 20;
+            int y = 50;
+
+            g.drawString(txt, x, y);
+        }
+
+        private void drawTimer(Graphics g) {
+            g.setColor(Color.BLACK);
+            g.setFont(new Font("Arial", Font.BOLD, 20));
+
+            String txt = "Time elapsed: " + elapsedTime;
+
+            int txtWidth = g.getFontMetrics().stringWidth(txt);
+            int x = getWidth() - txtWidth;
+            int y = 100;
+
+            g.drawString(txt, x, y);
+        }
+
+        public void returnToMenu() {
+            GamePanel.this.menu();
         }
     }
+
 }
