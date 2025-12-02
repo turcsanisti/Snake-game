@@ -20,9 +20,13 @@ import javax.json.JsonWriter;
 import javax.json.JsonWriterFactory;
 import javax.json.stream.JsonGenerator;
 
-
+/**
+ * Handles saving and loading of high scores
+ */
 public class Scores {
-
+    /**
+     * An entry in the high score list. It contains the player's name, score, time taken and match result. The class implements Comparable to allow sorting by score
+     */
     public static class Entry implements Comparable<Entry> {
         private String name;
         private int score;
@@ -47,6 +51,13 @@ public class Scores {
         }
     }
 
+    /**
+     * Saves a new score entry to the scores.json file
+     * @param playerName
+     * @param score
+     * @param time
+     * @param result
+     */
     public void saveScore(String playerName, int score, String time, String result) {
         JsonObject obj = Json.createObjectBuilder().add("playername", playerName).add("score", score).add("time", time).add("match result", result).build();
 
@@ -79,7 +90,10 @@ public class Scores {
             e.printStackTrace();
         }
     }
-
+    /**
+     * Loads and returns the list of top scores from the scores.json file
+     * @return list of top score entries
+     */
     public List<Entry> getTopScores() {
         List<Entry> scoreList = new ArrayList<>();
         File file = new File("scores.json");

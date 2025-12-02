@@ -4,8 +4,13 @@ import java.awt.Point;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * The snake controlled by the player
+ */
 public class Snake {
-    // a kígyó egy pontokat ((x,y) koordinátákat) tároló láncolt lista, getFirst() -> feje
+    /**
+     * The body of the snake represented as a list of points
+     */
     private List<Point> body;
     private int size;
 
@@ -14,14 +19,19 @@ public class Snake {
         body.add(new Point(Map.SIZE / 2, Map.SIZE / 2));
         size = 1;
     }
-    // mozgatás: a kígyónak új feje lesz, a farka törlődik
+
+    /**
+     * Moves the snake in the given direction, growing it if an apple was eaten
+     * @param dx
+     * @param dy
+     * @param appleEaten
+     */
     public void move(int dx, int dy, boolean appleEaten) {
         body.addFirst(new Point(getHead().x+dx, getHead().y+dy));
         if(!appleEaten) body.removeLast();
     }
 
     public void increaseSize(int dx, int dy, boolean appleEaten) {
-        // megnöveljük a kígyó testét = hozzáadunk egy elemet a láncolt listához
         move(dx, dy, appleEaten);
     }
 

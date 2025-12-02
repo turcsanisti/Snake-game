@@ -22,6 +22,9 @@ import nhf.core.Map;
 import nhf.core.Snake;
 import nhf.core.ObjectType;
 
+/**
+ * The main game panel that handles the menu and in-game display
+ */
 public class GamePanel extends JFrame {
     private Image bg;
     private Image scoresBg;
@@ -30,13 +33,16 @@ public class GamePanel extends JFrame {
     private Image normalScores;
     private Image normalExit;
     private Image hoveredPlay;
-    /*private Image hoveredScores;
-    private Image hoveredExit;*/
+    private Image hoveredScores;
+    private Image hoveredExit;
 
+    /**
+     * Constructs the GamePanel and initializes the menu
+     */
     public GamePanel() {
         super("Snake Game");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(800, 800);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         
         bg = new ImageIcon(getClass().getResource("/background.png")).getImage();
         scoresBg = new ImageIcon(getClass().getResource("/scores_background.png")).getImage();
@@ -45,10 +51,15 @@ public class GamePanel extends JFrame {
         normalScores = new ImageIcon(getClass().getResource("/scoresbutton_normal.png")).getImage();
         normalExit = new ImageIcon(getClass().getResource("/exitbutton_normal.png")).getImage();
         hoveredPlay = new ImageIcon(getClass().getResource("/playbutton_hovered.png")).getImage();
+        hoveredScores = new ImageIcon(getClass().getResource("/scoresbutton_hovered.png")).getImage();
+        hoveredExit = new ImageIcon(getClass().getResource("/exitbutton_hovered.png")).getImage();
 
         menu();
     }
 
+    /**
+     * Sets up and displays the main menu
+     */
     public void menu() {
         MenuPanel mp = new MenuPanel(bg);
         mp.setLayout(new BoxLayout(mp, BoxLayout.Y_AXIS));
@@ -61,6 +72,7 @@ public class GamePanel extends JFrame {
         setStyle(scoresButton);
         setStyle(exitButton);
 
+        // Resizes buttons when the window is resized
         mp.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
@@ -72,19 +84,23 @@ public class GamePanel extends JFrame {
                 Image exitScaled = normalExit.getScaledInstance(width, heigth, Image.SCALE_SMOOTH);
                 
                 ImageIcon playHoverScaled = new ImageIcon(hoveredPlay.getScaledInstance(width, heigth, Image.SCALE_SMOOTH));
+                ImageIcon scoresHoverScaled = new ImageIcon(hoveredScores.getScaledInstance(width, heigth, Image.SCALE_SMOOTH));
+                ImageIcon exitHoverScaled = new ImageIcon(hoveredExit.getScaledInstance(width, heigth, Image.SCALE_SMOOTH));
                 
                 playButton.setIcon(new ImageIcon(playScaled));
                 scoresButton.setIcon(new ImageIcon(scoresScaled));
                 exitButton.setIcon(new ImageIcon(exitScaled));
                 
                 playButton.setRolloverIcon(playHoverScaled);
+                scoresButton.setRolloverIcon(scoresHoverScaled);
+                exitButton.setRolloverIcon(exitHoverScaled);
 
                 revalidate();
                 repaint();
             }
             
         });
-
+        
         playButton.addActionListener(e -> {
             InGamePanel igp = new InGamePanel();
             Engine eng = new Engine(igp);
@@ -121,6 +137,8 @@ public class GamePanel extends JFrame {
             repaint();
         });
 
+        exitButton.addActionListener(e -> System.exit(0));
+
         mp.add(Box.createVerticalGlue());
         mp.add(playButton);
         mp.add(scoresButton);
@@ -131,7 +149,11 @@ public class GamePanel extends JFrame {
         revalidate();
         repaint();
     }
-
+    
+    /**
+     * Sets the style for the menu buttons
+     * @param button
+     */
     private void setStyle(JButton button) {
         button.setBorderPainted(false);
         button.setContentAreaFilled(false);
@@ -142,6 +164,9 @@ public class GamePanel extends JFrame {
         
     }
     
+    /**
+     * The panel displayed in the main menu
+     */
     public class MenuPanel extends JPanel {
         private transient Image backgroundImg;
         
@@ -156,6 +181,9 @@ public class GamePanel extends JFrame {
         }
     }
 
+    /**
+     * The panel displayed during the game
+     */
     public class InGamePanel extends JPanel {
         private transient Map map;
         private transient Snake snake;
@@ -177,14 +205,21 @@ public class GamePanel extends JFrame {
         public void setEngine(Engine engine) {
             this.engine = engine;
         }
-
+        
+        /**
+         * Updates the game status display
+         * @param item
+         * @param time
+         * @param score
+         * @param elapsedTime
+         */
         public void updateGameStatus(ObjectType item, int time, int score, String elapsedTime) {
             storedItem = item;
             timeRemaining = time;
             this.score = score;
             this.elapsedTime = elapsedTime;
         }
-
+        
         @Override
         public void paintComponent(Graphics g) {
             super.paintComponent(g);
@@ -284,6 +319,15 @@ public class GamePanel extends JFrame {
             drawTimer(g);
         }
 
+        /**
+         * Paints game objects like power-ups
+         * @param object
+         * @param offsetX
+         * @param offsetY
+         * @param cellSize
+         * @param g
+         * @param color
+         */
         public void paintObjects(Point object, int offsetX, int offsetY, int cellSize, Graphics g, Color color) {
                 if (object != null) {
                     int speedPowerUpX = offsetX + (object.x * cellSize);
@@ -294,6 +338,10 @@ public class GamePanel extends JFrame {
                 }
         }
 
+        /**
+         * Draws the "inventory"
+         * @param g
+         */
         private void drawInventory(Graphics g) {
             if (storedItem != null) {
                 g.setColor(Color.BLACK);
@@ -328,6 +376,10 @@ public class GamePanel extends JFrame {
             }
         }
 
+        /**
+         * Draws the current score
+         * @param g
+         */
         private void drawScore(Graphics g) {
             g.setColor(Color.BLACK);
             g.setFont(new Font("Arial", Font.BOLD, 20));
@@ -341,6 +393,10 @@ public class GamePanel extends JFrame {
             g.drawString(txt, x, y);
         }
 
+        /**
+         * Draws the elapsed time
+         * @param g
+         */
         private void drawTimer(Graphics g) {
             g.setColor(Color.BLACK);
             g.setFont(new Font("Arial", Font.BOLD, 20));

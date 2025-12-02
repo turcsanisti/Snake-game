@@ -10,6 +10,9 @@ import javax.swing.Timer;
 
 import nhf.gui.GamePanel.InGamePanel;
 
+/**
+ * Implements the main game logic
+ */
 public class Engine {
 
     private Map map;
@@ -41,6 +44,10 @@ public class Engine {
     
     private ObjectType storedPowerUp;
 
+    /**
+     * Constructor, sets up the engine: new map, new snake, initial direction etc.
+     * @param igp
+     */
     public Engine(InGamePanel igp) {
         map = new Map();
         snake = new Snake();
@@ -69,6 +76,10 @@ public class Engine {
         generateApple();
     }
 
+    /**
+     * Ends the game with either a win or a loss message. Gives the user options to start a new game, return to menu, save their score or exit from the game.
+     * @param message
+     */
     public void gameEnded(String message) {
         timer.stop();
         
@@ -98,6 +109,9 @@ public class Engine {
         }
     }
 
+    /**
+     * Resets the game to its initial state
+     */
     public void resetGame() {
         snake = new Snake();
         igp.setSnake(snake);
@@ -142,7 +156,13 @@ public class Engine {
         igp.requestFocusInWindow();
     }
 
-    public  boolean headInBody(Point head, Snake snake) {
+    /**
+     * Checks if the snake's head collides with its body. Skips the first point as it's the head itself
+     * @param head
+     * @param snake
+     * @return wheter head collides with body
+     */
+    public boolean headInBody(Point head, Snake snake) {
         boolean afterHead = false;
         
         for(Point p : snake.getBody()) {
@@ -155,6 +175,9 @@ public class Engine {
         return false;
     }
 
+    /**
+     * Handles the logic when the snake eats an apple: increases size, updates score, checks win condition, generates new apple and power-up if needed
+     */
     private void handleAppleEating() {
                 snake.setSize(snake.getSize() + 1);
 
@@ -185,6 +208,9 @@ public class Engine {
                 }
     }
 
+    /**
+     * Game loop, that is called on every tick
+     */
     public void loop() {
         directionChangedThisTick = false;
         boolean willEatApple = false;
@@ -222,6 +248,9 @@ public class Engine {
         igp.repaint();
     }
 
+    /**
+     * Gets the formatted time since the start of the game in mm:ss format
+     */
     public String getFormattedTime() {
         long sec = (System.currentTimeMillis() - start) / 1000;
         long min = sec / 60;
@@ -230,6 +259,9 @@ public class Engine {
         return String.format("%02d:%02d", min, sec);
     }
 
+    /**
+     * Saves the score by asking the user for their name and storing it in the scores.json file
+     */
     private void saveScore() {
         String name = JOptionPane.showInputDialog(igp, "Add meg a neved: ");
         if (name != null && !name.trim().isEmpty()) {
@@ -247,6 +279,9 @@ public class Engine {
         }
     }
 
+    /**
+     * Handles the logic when the snake picks up a power-up. Removes it from the map, stores it and sets expiration time
+     */
     private void pickUpPowerUp(ObjectType type) {
         deleteObjectFromMap(type);
 
@@ -255,6 +290,10 @@ public class Engine {
         powerUpExpiration = System.currentTimeMillis() + 10000;
     }
 
+    /**
+     * Removes the power-up from the map after being picked up
+     * @param type
+     */
     public void deleteObjectFromMap(ObjectType type) {
         switch (type) {
             case SPEED:
@@ -273,6 +312,11 @@ public class Engine {
         powerUpGenerated = false;
     }
 
+    /**
+     * Determines what type of object the snake has eaten based on its next head position
+     * @param nextHead
+     * @return
+     */
     public ObjectType getEatenObjectType(Point nextHead) {
         if(nextHead.equals(map.getApple())) {
             return ObjectType.APPLE;
@@ -287,6 +331,9 @@ public class Engine {
             return ObjectType.MEGAAPPLE;
     }
 
+    /**
+     * Generates a power-up at a random position on the map that is free (there is no snake body part or apple there)
+     */
     public void generatePowerUp() {
         int x = -1;
         int y = -1;
@@ -310,6 +357,9 @@ public class Engine {
         }
     }
 
+    /**
+     * Generates a new apple at a random position on the map that is free (there is no snake body part or power-up there)
+     */
     public void generateApple() {
         int x = -1;
         int y = -1;
@@ -343,6 +393,12 @@ public class Engine {
         }
     }
 
+    /**
+     * Finds a valid square for the apple to spawn in if random generation fails
+     * @param bound
+     * @param found
+     * @return the valid square coordinates
+     */
     private int[] findValidSquare(int bound, boolean found) {
         int x = -1;
         int y = -1;
@@ -359,10 +415,16 @@ public class Engine {
                 if (found)
                     return new int[] {x, y};
             }
-            
+
         return new int[] {x, y};
     }
 
+    /**
+     * Checks if the apple can be placed at the given coordinates
+     * @param x
+     * @param y
+     * @return wheter the apple can be placed there
+     */
     private boolean validApple(int x, int y) {
         if (isOccupied(x, y))
             return false;
@@ -378,11 +440,17 @@ public class Engine {
         return true;
     }
 
-
+    /**
+     * Starts the game loop timer
+     */
     public void start() {
         timer.start();
     }
 
+    /**
+     * Changes the snake's direction based on user input, considers inverted controls if the power-up is active
+     * @param keyCode
+     */
     public void changeDirection(int keyCode) {
         if (directionChangedThisTick) return;
         
@@ -416,6 +484,11 @@ public class Engine {
         if (changed) directionChangedThisTick = true;
     }
 
+    /**
+     * Sets the inverted controls based on the key pressed
+     * @param keyCode
+     * @return the modified key code
+     */
     private int setInvertedKeys(int keyCode) {
         if (keyCode == KeyEvent.VK_A) {
             keyCode = KeyEvent.VK_D;
@@ -433,6 +506,12 @@ public class Engine {
         return keyCode;
     }
 
+    /**
+     * Checks if a given position on the map is occupied by the snake, apple or power-up
+     * @param x
+     * @param y
+     * @return wheter the position is occupied
+     */
     public boolean isOccupied(int x, int y) {
         Point p = new Point(x, y);
 
@@ -447,6 +526,9 @@ public class Engine {
         return false;
     }
 
+    /**
+     * Activates the stored power-up and applies its effect
+     */
     public void activatePowerUp() {
         if (storedPowerUp == null)
             return;
@@ -460,7 +542,7 @@ public class Engine {
                 break;
              case MEGAAPPLE:
                 if(canMegaAppleSpawn())
-                    setMegaApples(); //popup üzenet h nincs hely megapple-nek
+                    setMegaApples();
                 break;
             default:
                 break;
@@ -469,6 +551,9 @@ public class Engine {
         storedPowerUp = null;
     }
 
+    /**
+     * Speeds up the game by halving the timer delay for a limited time
+     */
     private void speedUp() {
         timer.setDelay(delay / 2);
 
@@ -477,6 +562,9 @@ public class Engine {
         });
     }
 
+    /**
+     * Inverts the snake's controls for a limited time
+     */
     private void invertKeys() {
         inverted = true;
 
@@ -485,6 +573,9 @@ public class Engine {
         });
     }
 
+    /**
+     * Enables mega apple mode for a limited time
+     */
     private void setMegaApples() {
         isMegaAppleOn = true;
 
@@ -493,17 +584,31 @@ public class Engine {
         });
     }
 
+    /**
+     * Gets the currently stored power-up
+     * @return the stored power-up 
+     */
     public ObjectType getStoredPowerUp() {
         return storedPowerUp;
     }
 
+    /**
+     * Gets the time left for the currently stored power-up
+     * @return the time left in seconds
+     */
     public int getTimeLeft() {
         if (storedPowerUp == null) 
             return 0;
         long timeLeftMillis = powerUpExpiration - System.currentTimeMillis();
         return (int) Math.max(0, timeLeftMillis / 1000);
     }
-
+    
+    /**
+     * Starts or restarts a timer for power-up effects
+     * @param existingTimer
+     * @param onFinish
+     * @return the new timer
+     */
     private Timer startTimer(Timer existingTimer, Runnable onFinish) {
 
         if (existingTimer != null && existingTimer.isRunning()) 
@@ -520,6 +625,12 @@ public class Engine {
         return newTimer;
     }
 
+    /**
+     * Checks if the snake is eating the apple
+     * @param nextHead
+     * @param apple
+     * @return wheter the snake is eating the apple
+     */
     private boolean isEatingApple(Point nextHead, Point apple) {
         if (apple == null)
             return false;
@@ -533,11 +644,19 @@ public class Engine {
             return nextHead.equals(apple);
         }
     }
-
+    
+    /**
+     * Checks if mega apple mode is currently active
+     * @return wheter mega apple mode is on
+     */
     public boolean isMegaAppleModeOn() {
         return isMegaAppleOn;
     }
 
+    /**
+     * Checks if a mega apple can spawn on the current map
+     * @return wheter a mega apple can spawn
+     */
     private boolean canMegaAppleSpawn() {
         for (int x = 0; x < Map.SIZE - 1; x++) {
             for (int y = 0; y < Map.SIZE - 1; y++) {
@@ -553,7 +672,11 @@ public class Engine {
         }
         return false;
     }
-
+    
+    /**
+     * Checks if the current apple is mega
+     * @return wheter the current apple is mega
+     */
     public boolean currentAppleMega() {
         return isCurrentAppleMega;
     }

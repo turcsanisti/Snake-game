@@ -3,13 +3,10 @@ package nhf.core;
 import java.awt.Point;
 
 /**
- * asdsa
- * gdfgfd
- * 
- * gf
+ * The game map represented as a 2 dimensional grid.
  */
 public class Map {
-    public static final int SIZE = 3;
+    public static final int SIZE = 11;
     private int[][] grid = new int[SIZE][SIZE];
     private Point apple;
     private Point powerUp;
