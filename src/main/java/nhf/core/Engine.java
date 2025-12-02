@@ -333,7 +333,21 @@ public class Engine {
         }
 
         if (!found) {
-            for (int i = 0; i < bound; i++) {
+            int[] coords = findValidSquare(bound, found);
+            x = coords[0];
+            y = coords[1];
+        }
+
+        if (found) {
+            map.setApple(new Point(x, y));
+        }
+    }
+
+    private int[] findValidSquare(int bound, boolean found) {
+        int x = -1;
+        int y = -1;
+
+        for (int i = 0; i < bound; i++) {
                 for (int j = 0; j < bound; j++) {
                     if (validApple(i, j)) {
                         x = i;
@@ -343,13 +357,10 @@ public class Engine {
                     }
                 }
                 if (found)
-                    break;
+                    return new int[] {x, y};
             }
-        }
-
-        if (found) {
-            map.setApple(new Point(x, y));
-        }
+            
+        return new int[] {x, y};
     }
 
     private boolean validApple(int x, int y) {

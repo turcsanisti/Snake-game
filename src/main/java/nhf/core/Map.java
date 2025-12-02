@@ -9,7 +9,7 @@ import java.awt.Point;
  * gf
  */
 public class Map {
-    public static final int SIZE = 11;
+    public static final int SIZE = 3;
     private int[][] grid = new int[SIZE][SIZE];
     private Point apple;
     private Point powerUp;
