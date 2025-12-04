@@ -1,57 +1,9 @@
 
 [
     {
-        "playername": "fa",
-        "score": 8,
-        "time": "00:16",
-        "match result": "Win"
-    },
-    {
-        "playername": "dwa",
-        "score": 8,
-        "time": "00:17",
-        "match result": "Win"
-    },
-    {
-        "playername": "dwa",
-        "score": 8,
-        "time": "00:10",
-        "match result": "Win"
-    },
-    {
-        "playername": "fwa",
-        "score": 8,
-        "time": "00:13",
-        "match result": "Win"
-    },
-    {
-        "playername": "fwa",
-        "score": 8,
-        "time": "00:18",
-        "match result": "Win"
-    },
-    {
-        "playername": "faw",
-        "score": 8,
-        "time": "00:13",
-        "match result": "Win"
-    },
-    {
-        "playername": "432",
-        "score": 0,
-        "time": "00:03",
+        "playername": "test",
+        "score": 31,
+        "time": "01:00",
         "match result": "Lose"
-    },
-    {
-        "playername": "fse",
-        "score": 8,
-        "time": "00:47",
-        "match result": "Win"
-    },
-    {
-        "playername": "fes",
-        "score": 8,
-        "time": "00:21",
-        "match result": "Win"
     }
 ]

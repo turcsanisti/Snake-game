@@ -42,7 +42,7 @@ public class Snake {
         return body;
     }
     public int getSize() {
-        return size;
+        return body.size();
     }
 
     public void setSize(int i) {

@@ -193,6 +193,8 @@ public class GamePanel extends JFrame {
 
         private int timeRemaining;
         private int score = 0;
+        private int currentDx = 0;
+        private int currentDy = 0;
 
         private String elapsedTime = "00:00";
 
@@ -213,11 +215,13 @@ public class GamePanel extends JFrame {
          * @param score
          * @param elapsedTime
          */
-        public void updateGameStatus(ObjectType item, int time, int score, String elapsedTime) {
+        public void updateGameStatus(ObjectType item, int time, int score, String elapsedTime, int dx, int dy) {
             storedItem = item;
             timeRemaining = time;
             this.score = score;
             this.elapsedTime = elapsedTime;
+            currentDx = dx;
+            currentDy = dy;
         }
         
         @Override
@@ -271,9 +275,6 @@ public class GamePanel extends JFrame {
                 int applePixelY = offsetY + (apple.y * cellSize);
 
                 g.fillRect(applePixelX, applePixelY, size, size);
-
-                /*g.setColor(Color.WHITE);
-                g.drawRect(applePixelX, applePixelY, size, size);*/
             }
 
             Point pLoc = map.getPowerUpLocation();
@@ -303,17 +304,44 @@ public class GamePanel extends JFrame {
                 int snakePixelY = offsetY + (p.y * cellSize);
 
                 g.setColor(Color.GREEN);
-
                 g.fillRect(snakePixelX, snakePixelY, cellSize, cellSize);
+
+                g.setColor(Color.BLACK);
+                g.drawRect(snakePixelX, snakePixelY, cellSize, cellSize);
             }
 
             Point head = snake.getHead();
-            int headX = offsetX + (head.x * cellSize);
-            int headY = offsetY + (head.y * cellSize);
+            if (head != null) {
+                int headX = offsetX + (head.x * cellSize);
+                int headY = offsetY + (head.y * cellSize);
 
-            g.setColor(new Color(0, 120, 0));
-            g.fillRect(headX, headY, cellSize, cellSize);
+                g.setColor(new Color(0, 120, 0));
+                g.fillRect(headX, headY, cellSize, cellSize);
 
+                g.setColor(Color.BLACK);
+                int eyeSize = cellSize / 5;
+
+                if (currentDx == 1) {
+                    g.setColor(Color.BLACK);
+                    g.fillOval(headX + cellSize / 2, headY + cellSize / 4, eyeSize, eyeSize);
+                    g.fillOval(headX + cellSize / 2, headY + 3 * cellSize / 4 - eyeSize, eyeSize, eyeSize);
+            
+                } else if (currentDx == -1) {
+                    g.setColor(Color.BLACK);
+                    g.fillOval(headX + cellSize / 4, headY + cellSize / 4, eyeSize, eyeSize);
+                    g.fillOval(headX + cellSize / 4, headY + 3 * cellSize / 4 - eyeSize, eyeSize, eyeSize);
+                } else if (currentDy == -1) {
+                    g.setColor(Color.BLACK);
+                    g.fillOval(headX + cellSize / 4, headY + cellSize / 4, eyeSize, eyeSize);
+                    g.fillOval(headX + 3 * cellSize / 4 - eyeSize, headY + cellSize / 4, eyeSize, eyeSize);
+
+                } else if (currentDy == 1) {
+                    g.setColor(Color.BLACK);
+                    g.fillOval(headX + cellSize / 4, headY + cellSize / 2, eyeSize, eyeSize);
+                    g.fillOval(headX + 3 * cellSize / 4 - eyeSize, headY + cellSize / 2, eyeSize, eyeSize);
+                }
+
+            }
             drawInventory(g);
             drawScore(g);
             drawTimer(g);

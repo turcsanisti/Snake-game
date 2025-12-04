@@ -28,6 +28,7 @@ public class Engine {
     private int dx;
     private int dy;
     private int applesEaten;
+    private int points;
     private int delay;
 
     private long powerUpExpiration;
@@ -60,6 +61,7 @@ public class Engine {
         dx = -1;
         dy = 0;
         applesEaten = 0;
+        points = 0;
         delay = 500;
 
         powerUpExpiration = 0;
@@ -84,7 +86,7 @@ public class Engine {
         timer.stop();
         
         Object[] options = {"New Game", "Return to Menu", "Save Score","Exit"};
-        int o = JOptionPane.showOptionDialog(igp, message + " Score: " + applesEaten, "", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+        int o = JOptionPane.showOptionDialog(igp, message + " Score: " + points, "", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 
         if (message.equals("You won!")) {
             gameWon = true;
@@ -119,6 +121,7 @@ public class Engine {
         igp.setMap(map);
 
         applesEaten = 0;
+        points = 0;
         dx = -1;
         dy = 0;
         
@@ -129,6 +132,8 @@ public class Engine {
         directionChangedThisTick = false;
         inverted = false;
         gameWon = false;
+        isMegaAppleOn = false;
+        isCurrentAppleMega = false;
         
         if (speedRevertTimer != null) {
             speedRevertTimer.stop();
@@ -192,17 +197,17 @@ public class Engine {
                 if (speedRevertTimer != null) {
                     pointsToAdd *= 2;
                 }
+                points += pointsToAdd;
+                applesEaten++;
 
-                applesEaten += pointsToAdd;
-
-                if (snake.getSize() >= Map.SIZE * Map.SIZE) {
+                if (snake.getSize() >= Map.SIZE * Map.SIZE - 1) {
                     gameEnded("You won!");
                     return;
                 }
 
                 generateApple();
                 
-                if (applesEaten % 11 == 0 && applesEaten != 0 && !powerUpGenerated) {
+                if (applesEaten % 2 == 0 && applesEaten != 0 && !powerUpGenerated) {
                     generatePowerUp();
                     powerUpGenerated = true;
                 }
@@ -243,7 +248,7 @@ public class Engine {
             return;
         }
             
-        igp.updateGameStatus(storedPowerUp, getTimeLeft(), applesEaten, getFormattedTime());
+        igp.updateGameStatus(storedPowerUp, getTimeLeft(), points, getFormattedTime(), dx, dy);
         
         igp.repaint();
     }
@@ -267,7 +272,7 @@ public class Engine {
         if (name != null && !name.trim().isEmpty()) {
 
             Scores scores = new Scores();
-            scores.saveScore(name, applesEaten, getFormattedTime(), gameWon ? "Win" : "Lose");
+            scores.saveScore(name, points, getFormattedTime(), gameWon ? "Win" : "Lose");
 
             JOptionPane.showMessageDialog(igp, "Mentés sikeres.");
             
@@ -364,7 +369,12 @@ public class Engine {
         int x = -1;
         int y = -1;
 
-        isCurrentAppleMega = isMegaAppleOn;
+        if (isMegaAppleOn && !canMegaAppleSpawn()) {
+            isCurrentAppleMega = false;
+        }
+        else {
+            isCurrentAppleMega = isMegaAppleOn;
+        }
 
         int bound = isMegaAppleOn ? (Map.SIZE - 1) : Map.SIZE;
 
@@ -383,9 +393,13 @@ public class Engine {
         }
 
         if (!found) {
-            int[] coords = findValidSquare(bound, found);
-            x = coords[0];
-            y = coords[1];
+            int[] coords = findValidSquare(bound);
+
+            if (coords[0] != -1) {
+                x = coords[0];
+                y = coords[1];
+                found = true;
+            }
         }
 
         if (found) {
@@ -399,24 +413,16 @@ public class Engine {
      * @param found
      * @return the valid square coordinates
      */
-    private int[] findValidSquare(int bound, boolean found) {
-        int x = -1;
-        int y = -1;
-
+    private int[] findValidSquare(int bound) {
         for (int i = 0; i < bound; i++) {
-                for (int j = 0; j < bound; j++) {
-                    if (validApple(i, j)) {
-                        x = i;
-                        y = j;
-                        found = true;
-                        break;
-                    }
+            for (int j = 0; j < bound; j++) {
+                if (validApple(i, j)) {
+                    return new int[] {i, j};
                 }
-                if (found)
-                    return new int[] {x, y};
             }
+        }
 
-        return new int[] {x, y};
+        return new int[] {-1, -1};
     }
 
     /**
@@ -518,9 +524,19 @@ public class Engine {
         if (snake.getBody().contains(p))
             return true;
 
-        if (map.getApple() != null && map.getApple().equals(p))
-            return true;
+        if (map.getApple() != null) {
+            Point a = map.getApple();
+            if (currentAppleMega()) {
+                if ((p.x == a.x || p.x == a.x + 1) && (p.y == a.y || p.y == a.y + 1))
+                    return true;
+            }
 
+            else {
+                if (a.equals(p))
+                    return true;
+            }
+        }
+        
         if (map.getPowerUpLocation() != null && map.getPowerUpLocation().equals(p))
             return true;
         return false;

@@ -25,7 +25,7 @@ public class ScorePanel extends JPanel {
         
         setLayout(new BorderLayout());
 
-        JLabel titleLabel = new JLabel("TOPLISTA", SwingConstants.CENTER);
+        JLabel titleLabel = new JLabel("TOPLIST", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 40));
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(30, 0, 30, 0));
@@ -80,7 +80,7 @@ public class ScorePanel extends JPanel {
 
         add(tableContainer, BorderLayout.CENTER);
 
-        JButton backButton = new JButton("VISSZA A MENÜBE");
+        JButton backButton = new JButton("RETURN TO MENU");
         backButton.setFont(new Font("Arial", Font.BOLD, 20));
         backButton.setForeground(Color.WHITE);
         backButton.setFocusable(false);
