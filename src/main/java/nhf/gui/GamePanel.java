@@ -16,6 +16,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.List;
 
 import nhf.core.Engine;
 import nhf.core.Map;
@@ -241,6 +242,35 @@ public class GamePanel extends JFrame {
             int offsetX = (panelWidth - (Map.SIZE * cellSize)) / 2;
             int offsetY = (panelHeight - (Map.SIZE * cellSize)) / 2;
 
+            paintGrid(g, offsetX, offsetY, cellSize, grid);
+
+            Point apple = map.getApple();
+            paintApple(apple, offsetX, offsetY, cellSize, g);
+
+            Point pLoc = map.getPowerUpLocation();
+            ObjectType pType = map.getPowerUpType();
+            paintPowerUps(pLoc, offsetX, offsetY, cellSize, g, pType);
+
+            List<Point> body = snake.getBody();
+            drawBody(offsetX, offsetY, cellSize, g, body);
+
+            Point head = snake.getHead();
+            drawHead(g, offsetX, offsetY, cellSize, head);
+            
+            drawInventory(g);
+            drawScore(g);
+            drawTimer(g);
+        }
+
+        /**
+         * Paints the grid in the backrground of the game
+         * @param g
+         * @param offsetX
+         * @param offsetY
+         * @param cellSize
+         * @param grid
+         */
+        private void paintGrid(Graphics g, int offsetX, int offsetY, int cellSize, int[][] grid) {
             for(int row = 0; row < Map.SIZE; row++) {
                 for(int col = 0; col < Map.SIZE; col++) {
                     int x = offsetX + col * cellSize;
@@ -248,47 +278,57 @@ public class GamePanel extends JFrame {
 
                     int cell = grid[row][col];
                     if (cell == 0) {
-                        g.setColor(Color.BLUE);
+                        g.setColor(new Color(215, 192, 151));
                     }
                     else if(cell == 1){
-                        g.setColor(Color.CYAN);
+                        g.setColor(new Color(231, 222, 175));
                     }
 
                     g.fillRect(x, y, cellSize, cellSize);
-                    
                 }
             }
+        }
 
-            Point apple = map.getApple();
+        /**
+         * Paints the apple on the background
+         * @param apple
+         * @param offsetX
+         * @param offsetY
+         * @param cellSize
+         * @param g
+         */
+        private void paintApple(Point apple, int offsetX, int offsetY, int cellSize, Graphics g) {
             if (apple != null) {
                 boolean isMega = false;
-
                 if (engine != null) {
                     isMega = engine.currentAppleMega();
                 }
 
                 int size = isMega ? cellSize * 2 : cellSize;
-
                 g.setColor(Color.RED);
-
                 int applePixelX = offsetX + (apple.x * cellSize);
                 int applePixelY = offsetY + (apple.y * cellSize);
-
                 g.fillRect(applePixelX, applePixelY, size, size);
             }
+        }
 
-            Point pLoc = map.getPowerUpLocation();
-            ObjectType pType = map.getPowerUpType();
-
+        /**
+         * Paints the power-ups on the background
+         * @param pLoc
+         * @param offsetX
+         * @param offsetY
+         * @param cellSize
+         * @param g
+         * @param pType
+         */
+        private void paintPowerUps(Point pLoc, int offsetX, int offsetY, int cellSize, Graphics g, ObjectType pType) {
             if (pLoc != null && pType != null) {
                 Color c = Color.WHITE;
-
                 switch (pType) {
                     case SPEED:
                         c = Color.MAGENTA;
                         break;
                     case INVERTED:
-                        c = Color.WHITE;
                         break;
                     case MEGAAPPLE:
                         c = Color.DARK_GRAY;
@@ -298,55 +338,105 @@ public class GamePanel extends JFrame {
                 }
                 paintObjects(pLoc, offsetX, offsetY, cellSize, g, c);
             }
+        }
 
-            for (Point p : snake.getBody()) {
-                int snakePixelX = offsetX + (p.x * cellSize);
-                int snakePixelY = offsetY + (p.y * cellSize);
+        /**
+         * Paints the snake's body. The tail is drawn differently, with rounded edges, so it can be distinguished from the rest of the body
+         * @param offsetX
+         * @param offsetY
+         * @param cellSize
+         * @param g
+         * @param body
+         */
+        private void drawBody(int offsetX, int offsetY, int cellSize, Graphics g, List<Point> body) {
+            for (int i = 0; i < body.size(); i++) {
+                Point p = body.get(i);
+                int px = offsetX + (p.x * cellSize);
+                int py = offsetY + (p.y * cellSize);
 
-                g.setColor(Color.GREEN);
-                g.fillRect(snakePixelX, snakePixelY, cellSize, cellSize);
+                g.setColor(new Color(115, 175, 111));
 
-                g.setColor(Color.BLACK);
-                g.drawRect(snakePixelX, snakePixelY, cellSize, cellSize);
+                if (i == body.size() - 1 && body.size() > 1) {
+                    Point neighbor = body.get(i - 1);
+
+                    g.fillOval(px, py, cellSize, cellSize);
+
+                    if (neighbor.x < p.x) {
+                        g.fillRect(px, py, cellSize / 2, cellSize);
+                    } else if (neighbor.x > p.x) {
+                        g.fillRect(px + cellSize / 2, py, cellSize / 2, cellSize);
+                    } else if (neighbor.y < p.y) {
+                        g.fillRect(px, py, cellSize, cellSize / 2);
+                    } else if (neighbor.y > p.y) {
+                        g.fillRect(px, py + cellSize / 2, cellSize, cellSize / 2);
+                    }
+                    
+                    g.setColor(Color.BLACK);
+                    g.drawOval(px, py, cellSize, cellSize);
+
+                } else {
+                    g.fillRect(px, py, cellSize, cellSize);
+                    g.setColor(Color.BLACK);
+                    g.drawRect(px, py, cellSize, cellSize);
+                }
             }
+        }
 
-            Point head = snake.getHead();
+        /**
+         * Draws the snake's head with eyes and a tongue
+         * @param g
+         * @param offsetX
+         * @param offsetY
+         * @param cellSize
+         * @param head
+         */
+        private void drawHead(Graphics g, int offsetX, int offsetY, int cellSize, Point head) {
             if (head != null) {
                 int headX = offsetX + (head.x * cellSize);
                 int headY = offsetY + (head.y * cellSize);
 
-                g.setColor(new Color(0, 120, 0));
+
+                g.setColor(new Color(0, 126, 110));
                 g.fillRect(headX, headY, cellSize, cellSize);
 
-                g.setColor(Color.BLACK);
+                java.awt.Graphics2D g2d = (java.awt.Graphics2D) g;
+                g2d.setStroke(new java.awt.BasicStroke(3));
+                
                 int eyeSize = cellSize / 5;
+                Color tongueColor = Color.RED;
 
                 if (currentDx == 1) {
                     g.setColor(Color.BLACK);
                     g.fillOval(headX + cellSize / 2, headY + cellSize / 4, eyeSize, eyeSize);
                     g.fillOval(headX + cellSize / 2, headY + 3 * cellSize / 4 - eyeSize, eyeSize, eyeSize);
+                    g.setColor(tongueColor);
+                    g2d.drawLine(headX + cellSize, headY + cellSize / 2, headX + cellSize + 5, headY + cellSize / 2);
             
                 } else if (currentDx == -1) {
                     g.setColor(Color.BLACK);
                     g.fillOval(headX + cellSize / 4, headY + cellSize / 4, eyeSize, eyeSize);
                     g.fillOval(headX + cellSize / 4, headY + 3 * cellSize / 4 - eyeSize, eyeSize, eyeSize);
+                    g.setColor(tongueColor);
+                    g2d.drawLine(headX, headY + cellSize / 2, headX - 5, headY + cellSize / 2);
+
                 } else if (currentDy == -1) {
                     g.setColor(Color.BLACK);
                     g.fillOval(headX + cellSize / 4, headY + cellSize / 4, eyeSize, eyeSize);
                     g.fillOval(headX + 3 * cellSize / 4 - eyeSize, headY + cellSize / 4, eyeSize, eyeSize);
+                    g.setColor(tongueColor);
+                    g2d.drawLine(headX + cellSize / 2, headY, headX + cellSize / 2, headY - 5);
 
                 } else if (currentDy == 1) {
                     g.setColor(Color.BLACK);
                     g.fillOval(headX + cellSize / 4, headY + cellSize / 2, eyeSize, eyeSize);
                     g.fillOval(headX + 3 * cellSize / 4 - eyeSize, headY + cellSize / 2, eyeSize, eyeSize);
+                    g.setColor(tongueColor);
+                    g2d.drawLine(headX + cellSize / 2, headY + cellSize, headX + cellSize / 2, headY + cellSize + 5);
                 }
-
+                
+                g2d.setStroke(new java.awt.BasicStroke(1));
             }
-            drawInventory(g);
-            drawScore(g);
-            drawTimer(g);
         }
-
         /**
          * Paints game objects like power-ups
          * @param object

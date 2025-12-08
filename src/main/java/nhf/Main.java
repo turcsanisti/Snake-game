@@ -1,3 +1,6 @@
+/*! Here is a snapshot of my new application:
+   *  \image png uml.png "UML Diagram"
+   */
 package nhf;
 
 import nhf.gui.*;

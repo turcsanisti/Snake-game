@@ -184,33 +184,36 @@ public class Engine {
      * Handles the logic when the snake eats an apple: increases size, updates score, checks win condition, generates new apple and power-up if needed
      */
     private void handleAppleEating() {
-                snake.setSize(snake.getSize() + 1);
+        snake.setSize(snake.getSize() + 1);
 
-                int pointsToAdd = 1;
+        int pointsToAdd = 1;
                 
-                if (isCurrentAppleMega) {
-                    pointsToAdd = 4;
-                }
-                if (inverted) {
-                    pointsToAdd = 10;
-                }
-                if (speedRevertTimer != null) {
-                    pointsToAdd *= 2;
-                }
-                points += pointsToAdd;
-                applesEaten++;
+        if (isCurrentAppleMega) {
+            pointsToAdd = 4;
+        }
+        if (inverted) {
+            pointsToAdd = 10;
+        }
+        if (speedRevertTimer != null) {
+            pointsToAdd *= 2;
+        }
 
-                if (snake.getSize() >= Map.SIZE * Map.SIZE - 1) {
-                    gameEnded("You won!");
-                    return;
-                }
+        points += pointsToAdd;
+        applesEaten++;
 
-                generateApple();
+        if (snake.getSize() >= Map.SIZE * Map.SIZE - 1) {
+            gameEnded("You won!");
+            return;
+        }
                 
-                if (applesEaten % 2 == 0 && applesEaten != 0 && !powerUpGenerated) {
-                    generatePowerUp();
-                    powerUpGenerated = true;
-                }
+        if (applesEaten % 10 == 0 && applesEaten != 0 && !powerUpGenerated) {
+            generatePowerUp();
+            powerUpGenerated = true;
+            map.setApple(null);
+        }
+        else {
+            generateApple();
+        }
     }
 
     /**
@@ -243,7 +246,7 @@ public class Engine {
         
         snake.move(dx, dy, willEatApple);
             
-        if(nextHead.x < 0 || nextHead.y < 0 || nextHead.x > Map.SIZE - 1 || nextHead.y > Map.SIZE - 1 || headInBody(head, snake)) {
+        if(nextHead.x < 0 || nextHead.y < 0 || nextHead.x > Map.SIZE - 1 || nextHead.y > Map.SIZE - 1 || headInBody(nextHead, snake)) {
             gameEnded("Game over!");
             return;
         }
@@ -293,6 +296,8 @@ public class Engine {
         storedPowerUp = type;
 
         powerUpExpiration = System.currentTimeMillis() + 10000;
+
+        generateApple();
     }
 
     /**
@@ -381,7 +386,7 @@ public class Engine {
         int attempts = 0;
         boolean found = false;
 
-        while (attempts < 100) {
+        while (attempts < 200) {
             x = random.nextInt(bound);
             y = random.nextInt(bound);
 
@@ -429,7 +434,7 @@ public class Engine {
      * Checks if the apple can be placed at the given coordinates
      * @param x
      * @param y
-     * @return wheter the apple can be placed there
+     * @return whether the apple can be placed there
      */
     private boolean validApple(int x, int y) {
         if (isOccupied(x, y))
@@ -537,9 +542,7 @@ public class Engine {
             }
         }
         
-        if (map.getPowerUpLocation() != null && map.getPowerUpLocation().equals(p))
-            return true;
-        return false;
+        return map.getPowerUpLocation() != null && map.getPowerUpLocation().equals(p);
     }
 
     /**

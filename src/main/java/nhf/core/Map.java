@@ -6,7 +6,7 @@ import java.awt.Point;
  * The game map represented as a 2 dimensional grid.
  */
 public class Map {
-    public static final int SIZE = 5;
+    public static final int SIZE = 11;
     private int[][] grid = new int[SIZE][SIZE];
     private Point apple;
     private Point powerUp;
