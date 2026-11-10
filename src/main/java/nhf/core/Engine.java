@@ -184,7 +184,6 @@ public class Engine {
      * Handles the logic when the snake eats an apple: increases size, updates score, checks win condition, generates new apple and power-up if needed
      */
     private void handleAppleEating() {
-        snake.setSize(snake.getSize() + 1);
 
         int pointsToAdd = 1;
                 
@@ -525,8 +524,8 @@ public class Engine {
      */
     public boolean isOccupied(int x, int y) {
         Point p = new Point(x, y);
-
-        if (snake.getBody().contains(p))
+        
+        if (snake.getBody().contains(p) || snake.getHead().equals(p))
             return true;
 
         if (map.getApple() != null) {

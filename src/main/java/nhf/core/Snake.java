@@ -12,12 +12,10 @@ public class Snake {
      * The body of the snake represented as a list of points
      */
     private List<Point> body;
-    private int size;
 
     public Snake() {
         body = new LinkedList<>();
         body.add(new Point(Map.SIZE / 2, Map.SIZE / 2));
-        size = 1;
     }
 
     /**
@@ -43,9 +41,5 @@ public class Snake {
     }
     public int getSize() {
         return body.size();
-    }
-
-    public void setSize(int i) {
-        size = i;
     }
 }
